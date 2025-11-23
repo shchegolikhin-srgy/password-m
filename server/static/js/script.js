@@ -38,13 +38,11 @@
     e.preventDefault();
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
-    const deviceName = document.getElementById('device-name').value;
-    const deviceFingerprint = document.getElementById('device-fingerprint').value;
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, deviceName, deviceFingerprint })
+        body: JSON.stringify({ username, password})
       });
       if (res.ok) {
         const data = await res.json();

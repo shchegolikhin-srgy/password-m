@@ -15,7 +15,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
 jwt = JWTManager(app)
 def get_db_connection():
     conn = psycopg2.connect(
-        host="localhost",
+        host="postgres",
         port=5432,
         user="postgres",
         password="mysecretpassword",
