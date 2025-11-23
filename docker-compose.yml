@@ -1,6 +1,8 @@
-version: '3.8'
-
 services:
+  app:
+    build: ./server
+    ports:
+      - "0.0.0.0:8085:8080"
   postgres:
     image: postgres:16
     container_name: passwords-db
@@ -14,9 +16,6 @@ services:
       - ./migrations:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
-  app:
-    build: ./backend
-    ports:
-      - "8085:8080"
+
 volumes:
   postgres_data:
