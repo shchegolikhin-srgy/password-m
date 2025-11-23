@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16
-    container_name: password-manager-db
+    container_name: passwords-db
     environment:
       POSTGRES_DB: password_manager
       POSTGRES_USER: postgres
@@ -11,7 +11,12 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      - ./migrations:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+  app:
+    build: ./backend
+    ports:
+      - "8085:8080"
 volumes:
   postgres_data:

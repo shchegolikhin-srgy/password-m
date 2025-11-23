@@ -83,8 +83,9 @@ def login():
         if not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
             return jsonify({'error': 'Invalid credentials'}), 401
         access_token = create_access_token(identity=str(user['id']))
+        
         return jsonify({
-            'token': access_token,
+            'access_token': access_token,
             'user': {
                 'id': str(user['id']),
                 'username': user['username'],
@@ -182,4 +183,4 @@ def css(filename):
 def js(filename):
     return send_from_directory('../frontend/js', filename)
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8888)
+    app.run(debug=True, host='0.0.0.0', port=8080)
