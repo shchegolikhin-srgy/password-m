@@ -8,18 +8,21 @@ import uuid
 from datetime import datetime, timedelta
 import os
 
+
 app = Flask(__name__)
 CORS(app)
-app.config['JWT_SECRET_KEY'] = 'секретный ключ'
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
+
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'секретный ключ')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES', 24)))
 jwt = JWTManager(app)
+
 def get_db_connection():
     conn = psycopg2.connect(
-        host="postgres",
-        port=5432,
-        user="postgres",
-        password="mysecretpassword",
-        dbname="password_manager"
+        host=os.getenv('DB_HOST', 'postgres'),
+        port=int(os.getenv('DB_PORT', 5432)),
+        user=os.getenv('DB_USER', 'postgres'),
+        password=os.getenv('DB_PASSWORD', 'mysecretpassword'),
+        dbname=os.getenv('DB_NAME', 'password_manager')
     )
     return conn
 @app.route('/api/auth/register', methods=['POST'])
