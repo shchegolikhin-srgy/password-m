@@ -18,3 +18,12 @@ CREATE TABLE passwords (
 );
 
 CREATE INDEX idx_passwords_user_id ON passwords (user_id);
+
+/*
+CREATE TABLE sessions (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT true
+);
+*/
