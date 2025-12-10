@@ -35,6 +35,7 @@ def get_db_connection():
         dbname=os.getenv('DB_NAME', 'password_manager')
     )
     return conn
+
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -74,6 +75,7 @@ def register():
     finally:
         cursor.close()
         conn.close()
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -96,7 +98,6 @@ def login():
         if not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
             return jsonify({'error': 'Invalid credentials'}), 401
         access_token = create_access_token(identity=str(user['id']))
-        
         return jsonify({
             'access_token': access_token,
             'user': {
@@ -107,12 +108,12 @@ def login():
             },
             'message': 'Login successful'
         }), 200
-        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
         cursor.close()
         conn.close()
+
 @app.route('/api/passwords', methods=['GET'])
 @jwt_required()
 def get_passwords():
@@ -148,6 +149,7 @@ def get_passwords():
     finally:
         cursor.close()
         conn.close()
+
 @app.route('/api/passwords', methods=['POST'])
 @jwt_required()
 def create_password():
@@ -159,12 +161,10 @@ def create_password():
     
     if not service or not username or not password:
         return jsonify({'error': 'Service, username, and password are required'}), 400
-
     try:
         encrypted_password = fernet.encrypt(password.encode('utf-8')).decode('utf-8')
     except Exception as e:
         return jsonify({'error': 'Encryption failed'}), 500
-
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -180,13 +180,13 @@ def create_password():
             'service': service,
             'username': username,
         }), 201
-
     except Exception as e:
         conn.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
         cursor.close()
         conn.close()
+
 @app.route('/api/passwords/<int:password_id>', methods=['DELETE'])
 @jwt_required()
 def delete_password(password_id):
@@ -208,6 +208,7 @@ def delete_password(password_id):
     finally:
         cursor.close()
         conn.close()
+
 @app.route('/')
 def index():
     return send_from_directory('static', 'index.html')
