@@ -7,6 +7,9 @@ import bcrypt
 import uuid
 from datetime import datetime, timedelta
 import os
+from cryptography.fernet import Fernet
+import base64
+import hashlib
 
 
 app = Flask(__name__)
@@ -15,6 +18,15 @@ CORS(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'секретный ключ')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES', 24)))
 jwt = JWTManager(app)
+
+
+def get_encryption_key():
+    secret = os.getenv('ENCRYPTION_SECRET', 'my-super-secret-encryption-key-for-passwords-2025')
+    key = hashlib.sha256(secret.encode()).digest()
+    return base64.urlsafe_b64encode(key)
+
+fernet = Fernet(get_encryption_key())
+
 
 def get_db_connection():
     conn = psycopg2.connect(
@@ -114,7 +126,24 @@ def get_passwords():
             "SELECT id, service, username, password FROM passwords WHERE user_id = %s ORDER BY created_at DESC",
             (current_user_id,)
         )
-        passwords = cursor.fetchall()
+        rows = cursor.fetchall()
+        passwords = []
+        for row in rows:
+            try:
+                decrypted_password = fernet.decrypt(row['password'].encode('utf-8')).decode('utf-8')
+                passwords.append({
+                    'id': row['id'],
+                    'service': row['service'],
+                    'username': row['username'],
+                    'password': decrypted_password
+                })
+            except Exception as e:
+                passwords.append({
+                    'id': row['id'],
+                    'service': row['service'],
+                    'username': row['username'],
+                    'password': '[DECRYPTION ERROR]'
+                })
         return jsonify([dict(row) for row in passwords]), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -132,12 +161,18 @@ def create_password():
     
     if not service or not username or not password:
         return jsonify({'error': 'Service, username, and password are required'}), 400
+
+    try:
+        encrypted_password = fernet.encrypt(password.encode('utf-8')).decode('utf-8')
+    except Exception as e:
+        return jsonify({'error': 'Encryption failed'}), 500
+
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
             "INSERT INTO passwords (user_id, service, username, password) VALUES (%s, %s, %s, %s) RETURNING id",
-            (current_user_id, service, username, password)
+            (current_user_id, service, username, encrypted_password)
         )
         password_id = cursor.fetchone()[0]
         conn.commit()
@@ -146,7 +181,6 @@ def create_password():
             'id': password_id,
             'service': service,
             'username': username,
-            'password': password
         }), 201
 
     except Exception as e:

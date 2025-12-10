@@ -16,3 +16,5 @@ CREATE TABLE passwords (
     password TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX idx_passwords_user_id ON passwords (user_id);
