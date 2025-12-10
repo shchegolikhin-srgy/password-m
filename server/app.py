@@ -14,7 +14,6 @@ import hashlib
 
 app = Flask(__name__)
 CORS(app)
-
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'секретный ключ')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES', 24)))
 jwt = JWTManager(app)
@@ -26,7 +25,6 @@ def get_encryption_key():
     return base64.urlsafe_b64encode(key)
 
 fernet = Fernet(get_encryption_key())
-
 
 def get_db_connection():
     conn = psycopg2.connect(
